@@ -9,6 +9,18 @@ var budgetController = (function(){
 // UI CONTROLLER
 var UIController = (function(){
 
+	return {
+		getInput: function(){
+// return an objects with the three input value, so that it can be used by other functions
+			return {
+				type : document.querySelector('.add__type').value,
+				description : document.querySelector('.add__description').value,
+				value : document.querySelector('.add__value').value
+			}
+			
+		}
+	}
+
 })()
 
 // publicTest() should return sth so that it can be saved 
@@ -21,6 +33,8 @@ var controller = (function(budgetCtrl, UICtrl){
 	var ctrlAddItem = function(){
 		// 1. get input data
 
+		var input = UICtrl.getInput()
+
 		// 2. add the item to the budget controller
 
 		// 3. add the item to the UI
@@ -29,7 +43,7 @@ var controller = (function(budgetCtrl, UICtrl){
 
 		// 5. display the budget on the UI  
 
-		console.log('hit')
+		console.log(input)
 	}
 
 // click button or press enter same result
