@@ -2,6 +2,19 @@
 // budget controller
 var budgetController = (function(){
 
+// will be a lot of expense and income, so set up a constructor
+	var Expense = function(id, description, value){
+		this.id = id;
+		this.description = description;
+		this.value = value; 
+	}
+
+	var Income = function(id, description, value){
+		this.id = id;
+		this.description = description;
+		this.value = value; 
+	}
+
 })();
 
 
