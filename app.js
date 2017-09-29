@@ -196,6 +196,13 @@ var UIController = (function(){
 
 		},
 
+// check docs for more remove el options
+
+		deleteListItem: function(selectorID){
+			var el = document.getElementById(selectorID);
+			el.parentNode.removeChild(el);
+		},
+
 		clearFields: function(){
 
 			var fields, fieldsArr;
@@ -314,18 +321,20 @@ var controller = (function(budgetCtrl, UICtrl){
 		itemID = event.target.parentNode.parentNode.parentNode.parentNode.id;
 
 		if(itemID){			
-				// id format: 'inc-1'.split('-'); ==> ['inc','1'],then we got type and id 
+				// id format: 'inc-1'.split('-'); ==> ['inc','1'],then we got type and id
+				// note: ID is a string, need to transfer to number 
 			splitID = itemID.split('-');
-			type = split[0];
-			ID = split[1];
+			type = splitID[0];
+			ID = parseInt(splitID[1]);
 
 			// 1. delete the item from the data structure
-
+				budgetCtrl.deleteItem(type, ID);
 
 			// 2. delete item from the UI
+				UICtrl.deleteListItem(itemID);
 
 			// 3. update and show new budget number
-
+				updateBudget();
 		}
 
 	}
