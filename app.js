@@ -7,7 +7,23 @@ var budgetController = (function(){
 		this.id = id;
 		this.description = description;
 		this.value = value; 
+		this.percentage= -1;
 	};
+// calculate %
+		Expense.prototype.calcPercentage = function(totalIncome){
+
+			if(totalIncome>0){
+				this.percentage = Math.round((this.value/ totalIncome)*100);
+			} else {
+				this.percentage = -1;
+			}
+		};
+// return %
+		Expense.prototype.getPercentage = function(){
+			return this.percentage;
+		};
+
+
 
 	var Income = function(id, description, value){
 		this.id = id;
@@ -23,9 +39,6 @@ var budgetController = (function(){
 		});
 
 		data.totals[type] = sum;
-
-
-
 	}
 
 
@@ -73,6 +86,26 @@ var budgetController = (function(){
 			return newItem;
 
 		},
+// note: cannot do: data.allItems[type][3], this way you are deleting the 
+// 3rd element not the element whose id number is 3 eg: [1,3,4,5,6] 
+// should find the index number of that element to remove it
+// map returns a new array
+
+		deleteItem: function(type, id){
+
+			var ids, index
+			ids = data.allItems[type].map(function(current){
+				return current.id
+			});
+
+			index = ids.indexOf(id);
+
+			if(index !== -1){
+				// splice() remove els from array, slice: make copy o array
+				data.allItems[type].splice(index, 1); 
+			}
+
+		},
 
 		calculateBudget: function(){
 
@@ -92,6 +125,20 @@ var budgetController = (function(){
 			data.percentage = -1;
 		}
 		},
+// calculate each expense % 
+		calculatePercentages: function(){
+			data.allItems.exp.forEach(function(cur){
+				cur.calcPercentage(data.totals.inc);
+			})
+		},
+
+		getPercentages: function(){
+			var allPerc = data.allItems.exp.map(function(cur){
+				return cur.getPercentage(); 
+			})
+			return allPerc;
+		},
+
 // return budget
 		getBudget: function(){
 			return {
@@ -127,7 +174,8 @@ var UIController = (function(){
 		incomeLabel: '.budget__income--value',
 		expenseLabel: '.budget__expenses--value',
 		percentageLabel: '.budget__expenses--percentage',
-		container: '.container'
+		container: '.container',
+		expensesPercLabel: '.item__percentage'
 
 
 	}
@@ -155,10 +203,10 @@ var UIController = (function(){
 
 		    if(type === 'inc') {
 		    	element = DOMstrings.incomeContainer;
-		         html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+		         html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
 			} else if (type === 'exp'){
 			     	element = DOMstrings.expensesContainer;
-			     	html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+			     	html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
 			     }
 
 
@@ -174,6 +222,13 @@ var UIController = (function(){
 
 			document.querySelector(element).insertAdjacentHTML('beforeend',newHtml) 
 
+		},
+
+// check docs for more remove el options
+
+		deleteListItem: function(selectorID){
+			var el = document.getElementById(selectorID);
+			el.parentNode.removeChild(el);
 		},
 
 		clearFields: function(){
@@ -209,6 +264,30 @@ var UIController = (function(){
 
 		},
 
+		displayPercentages: function(percentages){
+			// a node list, forEach not working
+			var fields = document.querySelectorAll(DOMstrings.expensesPercLabel)
+			
+		// build a forEach fn on node list
+			var nodeListForEach = function(list, callback){
+				for(var i = 0; i< list.length; i++){
+					callback(list[i],i)
+				}
+			}
+
+			nodeListForEach(fields, function(current, index){
+
+				if( percentages[index]>0){
+
+					current.textContent = percentages[index] + '%';
+				} else {
+					current.textContent = '---';
+				}
+				
+			})
+
+		},
+
 		getDOMstrings: function(){
 			return DOMstrings;
 		}
@@ -241,7 +320,9 @@ var controller = (function(budgetCtrl, UICtrl){
 				ctrlAddItem();
 				
 			}
-		})
+		});
+
+		document.querySelector(DOM.container).addEventListener('click',ctrlDeleteItem)
 
 	};
 
@@ -257,6 +338,17 @@ var controller = (function(budgetCtrl, UICtrl){
 
 		UICtrl.displayBudget(budget)
 
+	}
+
+// percentages are updated when add or delete an item
+	var updatePercentages = function(){
+		// 1. calculate %
+		budgetCtrl.calculatePercentages();
+		// 2. read percentages from the budget controller
+		var percentages = budgetCtrl.getPercentages();
+
+		// 3. update the UI with new % 
+		UICtrl.displayPercentages(percentages);
 	}
 
 	
@@ -283,10 +375,40 @@ var controller = (function(budgetCtrl, UICtrl){
 
 		updateBudget();
 
-		}
-		
-	
+		// 6. calculate and update %
+		updatePercentages();
+
+		}	
 	}
+
+	var ctrlDeleteItem = function(event){
+
+		var itemID,splitID, type, ID;
+		itemID = event.target.parentNode.parentNode.parentNode.parentNode.id;
+
+		if(itemID){			
+				// id format: 'inc-1'.split('-'); ==> ['inc','1'],then we got type and id
+				// note: ID is a string, need to transfer to number 
+			splitID = itemID.split('-');
+			type = splitID[0];
+			ID = parseInt(splitID[1]);
+
+			// 1. delete the item from the data structure
+				budgetCtrl.deleteItem(type, ID);
+
+			// 2. delete item from the UI
+				UICtrl.deleteListItem(itemID);
+
+			// 3. update and show new budget number
+				updateBudget();
+
+			// 4. calculate and update %
+				updatePercentages();
+		}
+
+	}
+
+
 
 // expose it to public
 
