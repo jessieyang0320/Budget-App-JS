@@ -206,9 +206,16 @@ var UIController = (function(){
 			return (type === 'exp' ? sign = '-' : sign = '+') + ' ' + int + '.' + dec;
 
 		};
-// expose 
 
 
+// build a forEach fn on node list
+			var nodeListForEach = function(list, callback){
+				for(var i = 0; i< list.length; i++){
+					callback(list[i],i)
+				}
+			}
+
+// to expose 
 	return {
 		getInput: function(){
 // return an objects with the three input value, so that it can be used by other functions
@@ -297,12 +304,7 @@ var UIController = (function(){
 			// a node list, forEach not working
 			var fields = document.querySelectorAll(DOMstrings.expensesPercLabel)
 			
-		// build a forEach fn on node list
-			var nodeListForEach = function(list, callback){
-				for(var i = 0; i< list.length; i++){
-					callback(list[i],i)
-				}
-			}
+		
 
 			nodeListForEach(fields, function(current, index){
 
@@ -329,6 +331,17 @@ var UIController = (function(){
 			document.querySelector(DOMstrings.dateLabel).textContent = month + ' ' + year;
 
 
+		},
+
+		changedType: function(){
+			var fields = document.querySelectorAll(
+				DOMstrings.inputType + ',' +
+				DOMstrings.inputDescription + ',' +
+				DOMstrings.inputValue); 
+
+			nodeListForEach(fields, function(cur){
+				cur.classList.toggle('red-focus');
+			})
 		},
 		
 
@@ -366,8 +379,9 @@ var controller = (function(budgetCtrl, UICtrl){
 			}
 		});
 
-		document.querySelector(DOM.container).addEventListener('click',ctrlDeleteItem)
+		document.querySelector(DOM.container).addEventListener('click',ctrlDeleteItem);
 
+		document.querySelector(DOM.inputType).addEventListener('change',UICtrl.changedType);
 	};
 
 	var updateBudget = function(){
