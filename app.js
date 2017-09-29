@@ -175,10 +175,37 @@ var UIController = (function(){
 		expenseLabel: '.budget__expenses--value',
 		percentageLabel: '.budget__expenses--percentage',
 		container: '.container',
-		expensesPercLabel: '.item__percentage'
+		expensesPercLabel: '.item__percentage',
+		dateLabel:'.budget__title--month'
 
 
 	}
+// no need to make a public function 
+	var formatNumber = function(num, type){
+			/*
+			+/- before number,
+			exactly 2 decimal points
+			comma separating the thousands 
+			*/ 
+
+			var numSplite; 
+
+			num = Math.abs(num);
+			num = num.toFixed(2); //toFixed is a number prototype method 2.5678=> 2.57
+			numSplite = num.split('.')
+
+			int = numSplite[0];
+			if(int.length > 3){
+				int = int.substr(0, int.length-3) + ',' + int.substr(int.length-3, 3)
+			}
+			
+			dec = numSplite[1];
+
+			
+
+			return (type === 'exp' ? sign = '-' : sign = '+') + ' ' + int + '.' + dec;
+
+		};
 // expose 
 
 
@@ -214,7 +241,7 @@ var UIController = (function(){
 
 				newHtml = html.replace('%id%', obj.id);
 				newHtml = newHtml.replace('%description%', obj.description);
-				newHtml = newHtml.replace('%value%', obj.value);
+				newHtml = newHtml.replace('%value%', formatNumber(obj.value,type));
 
 			// step 3: insert the HTML into the DOM
 			// use beforeend, will inset it into the element as the last child, see
@@ -247,10 +274,12 @@ var UIController = (function(){
 		},
 
 		displayBudget: function(obj){
-			
-			document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget;
-			document.querySelector(DOMstrings.incomeLabel).textContent = obj.totalInc;
-			document.querySelector(DOMstrings.expenseLabel).textContent = obj.totalExp;
+			var type;
+			obj.budget > 0 ? type ='inc' : type = 'exp';
+
+			document.querySelector(DOMstrings.budgetLabel).textContent = formatNumber(obj.budget, type);
+			document.querySelector(DOMstrings.incomeLabel).textContent = formatNumber(obj.totalInc, 'inc');
+			document.querySelector(DOMstrings.expenseLabel).textContent = formatNumber(obj.totalExp, 'exp');
 			
 			
 			if(obj.percentage > 0){
@@ -287,6 +316,21 @@ var UIController = (function(){
 			})
 
 		},
+
+		displayMonth: function(){
+			var now, year, month, formatter;
+
+			now = new Date();
+
+			formatter = new Intl.DateTimeFormat('en', { month: 'long'})
+			
+			year = now.getFullYear(); 
+			month = formatter.format(now);
+			document.querySelector(DOMstrings.dateLabel).textContent = month + ' ' + year;
+
+
+		},
+		
 
 		getDOMstrings: function(){
 			return DOMstrings;
@@ -414,7 +458,8 @@ var controller = (function(budgetCtrl, UICtrl){
 
 	return {
 		init: function(){
-			console.log('app started')
+			console.log('app started');
+			UICtrl.displayMonth();
 			UICtrl.displayBudget({
 				budget: 0,
 				totalInc: 0,
