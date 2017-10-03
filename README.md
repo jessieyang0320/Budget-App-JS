@@ -1,10 +1,11 @@
 # Know-Your-Budget
 
-built with vanilla JavaScript 
+built with vanilla JavaScript and bootstrap
 
-checkout the demo: 
-https://jessieyang0320.github.io/Budget-App-JS/
+Checkout Demo: [DEMO](https://jessieyang0320.github.io/Budget-App-JS)
+
 
 screenshot:
-![alt text][logo]
-[logo]: https://github.com/jessieyang0320/Budget-App-JS/blob/master/screenshotjs.png
+![alt text](https://github.com/jessieyang0320/Budget-App-JS/blob/master/screenshotjs.png
+)
+
